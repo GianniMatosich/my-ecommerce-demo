@@ -3,9 +3,11 @@
  */
 
 const express = require("express");
+const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose(); // Use the sqlite3 library
 
 const app = express();
+app.use(cors());
 app.use(express.json()); // Parse JSON bodies in incoming requests
 
 // Connect to a local SQLite database file (user.db).

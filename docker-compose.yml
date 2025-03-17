@@ -6,7 +6,6 @@ services:
       - "3001:3001"
     environment:
       - CATALOG_PORT=3001
-    # volumes, network config, etc. as needed
 
   user-service:
     build: ./user-service
@@ -22,10 +21,7 @@ services:
     environment:
       - ORDER_PORT=3003
 
-frontend:
+  frontend:
     build: ./frontend
     ports:
       - "3000:3000"
-    # environment:
-    #   - REACT_APP_API_URL=http://your-api-url-here
-    # You can add environment vars for your React app if needed
