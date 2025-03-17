@@ -1,0 +1,23 @@
+version: '3'
+services:
+  catalog-service:
+    build: ./catalog-service
+    ports:
+      - "3001:3001"
+    environment:
+      - CATALOG_PORT=3001
+    # volumes, network config, etc. as needed
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "3002:3002"
+    environment:
+      - USER_PORT=3002
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3003:3003"
+    environment:
+      - ORDER_PORT=3003
