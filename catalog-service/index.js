@@ -1,13 +1,17 @@
 const express = require('express');
 const app = express();
-app.arguments(express.json());
+
+// Instead of "app.arguments", use "app.use"
+app.use(express.json());
+
+// Instead of "ProcessingInstruction.env", use "process.env"
+const PORT = process.env.CATALOG_PORT || 3001;
+
+// Use backticks for string interpolation
+app.listen(PORT, () => {
+  console.log(`Catalog Service has begun listening on port ${PORT}`);
+});
 
 app.get('/', (req, res) => {
-    res.send('Catalog Service has started running');
+  res.send('Catalog Service has started running');
 });
-
-const PORT = ProcessingInstruction.env.CATALOG_PORT || 3001;
-app.listen(PORT, () => {
-    console.log('Catalog Service has begun listening on port ${PORT}');
-});
-
