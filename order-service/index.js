@@ -135,3 +135,11 @@ const PORT = process.env.ORDER_PORT || 3003;
 app.listen(PORT, () => {
   console.log(`Order Service listening on port ${PORT}`);
 });
+
+const axios = require("axios");
+const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:3001";
+
+async function getProductInfo(productId) {
+  const response = await axios.get(`${CATALOG_URL}/products/${productId}`);
+  return response.data;
+}
