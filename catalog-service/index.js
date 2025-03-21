@@ -5,7 +5,6 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose(); // 1) Import the sqlite3 library
-const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(cors());
@@ -141,16 +140,4 @@ app.delete("/products/:id", (req, res) => {
 const PORT = process.env.CATALOG_PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Catalog Service listening on port ${PORT}`);
-});
-
-const jwt = require("jsonwebtoken");
-const SECRET_KEY = "your-secret-key"; // Use process.env in production
-
-// Example: POST /login
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
-  // Validate user in DB (compare hashed passwords, etc.)
-  // If valid:
-  const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: "1h" });
-  return res.json({ token });
 });
