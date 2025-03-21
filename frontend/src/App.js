@@ -1,50 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Login from "./Login";
+import Products from "./Products";
+import Orders from "./Orders";
 
-function App() {
-  // 1) Store products in state
-  const [products, setProducts] = useState([]);
-  const [error, setError] = useState(null);
-
-  // 2) Fetch products on component load
-  useEffect(() => {
-    fetch("http://localhost:3001/products") // <-- Replace with your Catalog Service URL if needed
-      .then((response) => {
-        if (!response.ok) {
-          // If HTTP status is not 2xx, throw an error
-          throw new Error(
-            `Network response was not ok (status: ${response.status})`
-          );
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setProducts(data);
-      })
-      .catch((err) => {
-        setError(err);
-      });
-  }, []); 
-  // [] ensures this runs only once, when the component mounts
-
-  // 3) Handle error state
-  if (error) {
-    return <div style={{ color: "red" }}>Error: {error.message}</div>;
-  }
-
-  // 4) Render product list
+/**
+ * Sets up our main navigation and defines routes for:
+ * - /login
+ * - /products
+ * - /orders
+ */
+export default function App() {
   return (
-    <div>
-      <h1>Product List</h1>
-      {products.length === 0 && <p>No products found.</p>}
-      <ul>
-        {products.map((product) => (
-          <li key={product.id}>
-            {product.name} - ${product.price?.toFixed(2)}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Router>
+      <nav style={{ padding: "10px", marginBottom: "10px", borderBottom: "1px solid #ccc" }}>
+        <Link to="/login" style={{ marginRight: "15px" }}>Login</Link>
+        <Link to="/products" style={{ marginRight: "15px" }}>Products</Link>
+        <Link to="/orders">Orders</Link>
+      </nav>
+
+      <Routes>
+        {/* Default route goes to Login */}
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/orders" element={<Orders />} />
+      </Routes>
+    </Router>
   );
 }
-
-export default App;
