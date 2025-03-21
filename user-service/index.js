@@ -1,18 +1,14 @@
-/**
- * index.js (User Service)
- */
-
 const express = require("express");
 const cors = require("cors");
-const sqlite3 = require("sqlite3").verbose(); // Use the sqlite3 library
+const sqlite3 = require("sqlite3").verbose();
 const jwt = require("jsonwebtoken");
 
-const SECRET_KEY = "your-secret-key"; // Use process.env in production
+const SECRET_KEY = "your-secret-key";
 const app = express();
 app.use(cors());
-app.use(express.json()); // Parse JSON bodies in incoming requests
+app.use(express.json());
 
-// Connect to a local SQLite database file (user.db).
+// Initialize the SQLite database connection
 const db = new sqlite3.Database("./user.db", (err) => {
   if (err) {
     return console.error("Could not connect to user database:", err.message);
@@ -20,7 +16,7 @@ const db = new sqlite3.Database("./user.db", (err) => {
   console.log("Connected to the local SQLite user database.");
 });
 
-// Create a "users" table if it doesn't exist.
+// Create a users table if none exists yet
 db.run(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,27 +32,14 @@ db.run(`
   }
 });
 
-/**
- * CRUD Endpoints for Users
- * ---------------------------------------
- * C = Create => POST /users
- * R = Read   => GET /users, GET /users/:id
- * U = Update => PUT /users/:id
- * D = Delete => DELETE /users/:id
- */
-
-// CREATE a new user
+// Add a new user to the database
 app.post("/users", (req, res) => {
   const { username, email, password } = req.body;
-
   if (!username || !email || !password) {
     return res.status(400).json({ error: "Missing required fields: username, email, password" });
   }
-
   const sql = `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`;
-  const params = [username, email, password];
-
-  db.run(sql, params, function (err) {
+  db.run(sql, [username, email, password], function (err) {
     if (err) {
       console.error("Error creating user:", err.message);
       return res.status(500).json({ error: "Failed to create user" });
@@ -65,7 +48,7 @@ app.post("/users", (req, res) => {
   });
 });
 
-// READ all users
+// Retrieve a list of all users (excluding passwords)
 app.get("/users", (req, res) => {
   const sql = `SELECT id, username, email FROM users`;
   db.all(sql, [], (err, rows) => {
@@ -77,7 +60,7 @@ app.get("/users", (req, res) => {
   });
 });
 
-// READ a single user by ID
+// Retrieve a single user by ID (excluding password)
 app.get("/users/:id", (req, res) => {
   const { id } = req.params;
   const sql = `SELECT id, username, email FROM users WHERE id = ?`;
@@ -93,19 +76,15 @@ app.get("/users/:id", (req, res) => {
   });
 });
 
-// UPDATE a user by ID
+// Update user data by ID
 app.put("/users/:id", (req, res) => {
   const { id } = req.params;
   const { username, email, password } = req.body;
-
   if (!username || !email || !password) {
     return res.status(400).json({ error: "Missing required fields: username, email, password" });
   }
-
   const sql = `UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?`;
-  const params = [username, email, password, id];
-
-  db.run(sql, params, function (err) {
+  db.run(sql, [username, email, password, id], function (err) {
     if (err) {
       console.error("Error updating user:", err.message);
       return res.status(500).json({ error: "Failed to update user" });
@@ -117,7 +96,7 @@ app.put("/users/:id", (req, res) => {
   });
 });
 
-// DELETE a user by ID
+// Remove a user by ID
 app.delete("/users/:id", (req, res) => {
   const { id } = req.params;
   const sql = `DELETE FROM users WHERE id = ?`;
@@ -133,23 +112,12 @@ app.delete("/users/:id", (req, res) => {
   });
 });
 
-/**
- * LOGIN Endpoint
- * ---------------------------------------
- * POST /login
- * - Accepts { email, password }
- * - Checks if a matching user exists in the DB
- * - If valid, returns a signed JWT token (expires in 1 hour)
- */
+// Authenticate user credentials and issue a JSON Web Token
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-
-  // 1) Check that the request includes email and password
   if (!email || !password) {
     return res.status(400).json({ error: "Email and password required" });
   }
-
-  // 2) Query the DB for a matching user
   const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
   db.get(sql, [email, password], (err, user) => {
     if (err) {
@@ -157,21 +125,15 @@ app.post("/login", (req, res) => {
       return res.status(500).json({ error: "Internal server error" });
     }
     if (!user) {
-      // No match
       return res.status(401).json({ error: "Invalid credentials" });
     }
-
-    // 3) Create a token
-    // For demonstration, we'll include just the 'id' & 'email' in the token payload
     const tokenPayload = { id: user.id, email: user.email };
     const token = jwt.sign(tokenPayload, SECRET_KEY, { expiresIn: "1h" });
-
-    // 4) Return the token
     return res.json({ token });
   });
 });
 
-// Start the Express server
+// Start the server on the specified port
 const PORT = process.env.USER_PORT || 3002;
 app.listen(PORT, () => {
   console.log(`User Service listening on port ${PORT}`);

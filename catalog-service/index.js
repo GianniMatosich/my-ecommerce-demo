@@ -1,25 +1,20 @@
-/**
- * index.js (Catalog Service)
- */
-
 const express = require("express");
 const cors = require("cors");
-const sqlite3 = require("sqlite3").verbose(); // 1) Import the sqlite3 library
+const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // 2) Parse JSON bodies in incoming requests
+app.use(express.json());
 
-// 3) Connect to a local SQLite database file.
-//    If the file doesn't exist, SQLite will create it for you.
+// Initialize the catalog database and confirm connectivity
 const db = new sqlite3.Database("./catalog.db", (err) => {
   if (err) {
-    return console.error("Could not connect to database:", err.message);
+    return console.error("Unable to connect to catalog database:", err.message);
   }
-  console.log("Connected to the local SQLite database.");
+  console.log("Catalog database is ready.");
 });
 
-// 4) Create a "products" table if it doesn't exist yet.
+// Create the products table if it doesn't already exist
 db.run(`
   CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,61 +24,47 @@ db.run(`
   )
 `, (err) => {
   if (err) {
-    console.error("Failed to create products table:", err.message);
+    console.error("Could not create products table:", err.message);
   } else {
-    console.log("Ensured 'products' table exists.");
+    console.log("Products table is confirmed.");
   }
 });
 
-/**
- * 5) CRUD Endpoints
- *    -----------------------------
- *    C = Create => POST /products
- *    R = Read   => GET /products, GET /products/:id
- *    U = Update => PUT /products/:id
- *    D = Delete => DELETE /products/:id
- */
-
-// 5.1) CREATE a new product
+// Add a new product entry
 app.post("/products", (req, res) => {
   const { name, description, price } = req.body;
-
   if (!name || price == null) {
     return res.status(400).json({ error: "Missing required fields: name, price" });
   }
-
-  const sql = `INSERT INTO products (name, description, price) VALUES (?, ?, ?)`;
-  const params = [name, description || "", price];
-
-  db.run(sql, params, function (err) {
+  const sql = "INSERT INTO products (name, description, price) VALUES (?, ?, ?)";
+  db.run(sql, [name, description || "", price], function (err) {
     if (err) {
-      console.error("Error creating product:", err.message);
+      console.error("Cannot create product:", err.message);
       return res.status(500).json({ error: "Failed to create product" });
     }
-    // 'this.lastID' gives the ID of the newly inserted row
     return res.status(201).json({ id: this.lastID, name, description, price });
   });
 });
 
-// 5.2) READ all products
+// Retrieve all products
 app.get("/products", (req, res) => {
-  const sql = `SELECT * FROM products`;
+  const sql = "SELECT * FROM products";
   db.all(sql, [], (err, rows) => {
     if (err) {
-      console.error("Error fetching products:", err.message);
+      console.error("Cannot fetch products:", err.message);
       return res.status(500).json({ error: "Failed to retrieve products" });
     }
     return res.json(rows);
   });
 });
 
-// 5.3) READ a single product by ID
+// Retrieve a specific product by ID
 app.get("/products/:id", (req, res) => {
   const { id } = req.params;
-  const sql = `SELECT * FROM products WHERE id = ?`;
+  const sql = "SELECT * FROM products WHERE id = ?";
   db.get(sql, [id], (err, row) => {
     if (err) {
-      console.error("Error fetching product:", err.message);
+      console.error("Cannot fetch product:", err.message);
       return res.status(500).json({ error: "Failed to retrieve product" });
     }
     if (!row) {
@@ -93,24 +74,19 @@ app.get("/products/:id", (req, res) => {
   });
 });
 
-// 5.4) UPDATE a product by ID
+// Update product details by ID
 app.put("/products/:id", (req, res) => {
   const { id } = req.params;
   const { name, description, price } = req.body;
-
   if (!name || price == null) {
     return res.status(400).json({ error: "Missing required fields: name, price" });
   }
-
-  const sql = `UPDATE products SET name = ?, description = ?, price = ? WHERE id = ?`;
-  const params = [name, description || "", price, id];
-
-  db.run(sql, params, function (err) {
+  const sql = "UPDATE products SET name = ?, description = ?, price = ? WHERE id = ?";
+  db.run(sql, [name, description || "", price, id], function (err) {
     if (err) {
-      console.error("Error updating product:", err.message);
+      console.error("Cannot update product:", err.message);
       return res.status(500).json({ error: "Failed to update product" });
     }
-    // 'this.changes' tells how many rows were updated
     if (this.changes === 0) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -118,13 +94,13 @@ app.put("/products/:id", (req, res) => {
   });
 });
 
-// 5.5) DELETE a product by ID
+// Remove a product by ID
 app.delete("/products/:id", (req, res) => {
   const { id } = req.params;
-  const sql = `DELETE FROM products WHERE id = ?`;
+  const sql = "DELETE FROM products WHERE id = ?";
   db.run(sql, [id], function (err) {
     if (err) {
-      console.error("Error deleting product:", err.message);
+      console.error("Cannot delete product:", err.message);
       return res.status(500).json({ error: "Failed to delete product" });
     }
     if (this.changes === 0) {
@@ -134,10 +110,8 @@ app.delete("/products/:id", (req, res) => {
   });
 });
 
-/**
- * 6) Start the Express server
- */
+// Start listening on the assigned port
 const PORT = process.env.CATALOG_PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Catalog Service listening on port ${PORT}`);
+  console.log(`Catalog Service is running on port ${PORT}`);
 });
