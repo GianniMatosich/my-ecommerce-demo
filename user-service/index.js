@@ -133,18 +133,46 @@ app.delete("/users/:id", (req, res) => {
   });
 });
 
+/**
+ * LOGIN Endpoint
+ * ---------------------------------------
+ * POST /login
+ * - Accepts { email, password }
+ * - Checks if a matching user exists in the DB
+ * - If valid, returns a signed JWT token (expires in 1 hour)
+ */
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  // 1) Check that the request includes email and password
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password required" });
+  }
+
+  // 2) Query the DB for a matching user
+  const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+  db.get(sql, [email, password], (err, user) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+    if (!user) {
+      // No match
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // 3) Create a token
+    // For demonstration, we'll include just the 'id' & 'email' in the token payload
+    const tokenPayload = { id: user.id, email: user.email };
+    const token = jwt.sign(tokenPayload, SECRET_KEY, { expiresIn: "1h" });
+
+    // 4) Return the token
+    return res.json({ token });
+  });
+});
+
 // Start the Express server
 const PORT = process.env.USER_PORT || 3002;
 app.listen(PORT, () => {
   console.log(`User Service listening on port ${PORT}`);
-});
-
-
-// Example: POST /login
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
-  // Validate user in DB (compare hashed passwords, etc.)
-  // If valid:
-  const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: "1h" });
-  return res.json({ token });
 });
