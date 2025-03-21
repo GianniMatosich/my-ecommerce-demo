@@ -1,21 +1,20 @@
-Developer: Gianni Matosich
+E-Commerce Platform Demo
 
+Author: Gianni Matosich
 
+Overview
+A simple microservices-based application with three Node.js services (Catalog, User, and Order) plus an optional React front-end.
 
-Title: E-Commerce Platform Demo
+## How to Run Locally
 
-
-
-Objective: Create a microservices-based e-commerce platform that demonstrates multiple independent services can work together to handle core retail operations. This platform will be able to assist users in account creation, log in returning users, store product data, and process orders. 
-
-
-
-Plan (for development purposes):
-
-1. Services will include a catalog that houses and manages lists of all products, a user service that handles account creation, and an order service that manages orders made.
-
-2. SQLite will be used to house the database for the aforementioned services. Each microservice will have its own database to demonstrate an organic microservices approach.
-
-3. Communication between microservices will be handled using RabbitMQ (in earlier versions I may use REST API for convenience.).
-
-4. Front-End will be handled using React.
+1. **Install Node.js** (version 18 or higher).
+2. **Clone this repository**:
+   ```bash
+   git clone https://github.com/GianniMatosich/my-ecommerce-demo.git
+   cd my-ecommerce-demo
+3. Dependencies: Node Package Manager
+4. Locations:
+   Catalog Service: localhost:3001
+   User Service: localhost:3002
+   Order Service: localhost:3003
+   Front-end: localhost3000
