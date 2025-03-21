@@ -5,7 +5,9 @@
 const express = require("express");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose(); // Use the sqlite3 library
+const jwt = require("jsonwebtoken");
 
+const SECRET_KEY = "your-secret-key"; // Use process.env in production
 const app = express();
 app.use(cors());
 app.use(express.json()); // Parse JSON bodies in incoming requests
@@ -135,4 +137,14 @@ app.delete("/users/:id", (req, res) => {
 const PORT = process.env.USER_PORT || 3002;
 app.listen(PORT, () => {
   console.log(`User Service listening on port ${PORT}`);
+});
+
+
+// Example: POST /login
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+  // Validate user in DB (compare hashed passwords, etc.)
+  // If valid:
+  const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: "1h" });
+  return res.json({ token });
 });
